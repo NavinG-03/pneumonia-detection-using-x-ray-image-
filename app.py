@@ -5,8 +5,14 @@ import numpy as np
 import os
 
 app = Flask(__name__)
+
+# Load multiclass-trained model
 model = load_model('model/pneumonia_cnn_model.h5')
 
+# Class names for prediction output
+class_names = ['NORMAL', 'VIRAL', 'BACTERIAL']
+
+# Set upload path
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -18,20 +24,25 @@ def index():
 def predict():
     if 'file' not in request.files:
         return "No file uploaded"
-    
+
     file = request.files['file']
+    if file.filename == '':
+        return "No selected file"
+    
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
+    # Preprocess the image
     img = image.load_img(filepath, target_size=(150, 150))
     img_array = image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
+    # Make prediction
     prediction = model.predict(img_array)
-    result = "Pneumonia" if prediction[0][0] > 0.5 else "Normal"
+    predicted_class = class_names[np.argmax(prediction)]
 
-    return render_template('index.html', result=result, img_path=filepath)
+    # Render result
+    return render_template('index.html', result=predicted_class, img_path=filepath)
 
 if __name__ == '__main__':
-    app.run(debug=True,port=5001)
-
+    app.run(debug=True, port=5001)
