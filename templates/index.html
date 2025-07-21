@@ -1,18 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Pneumonia Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+        }
+
+        input[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: #222;
+        }
+
+        .result img {
+            margin-top: 10px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            width: 300px;
+        }
+    </style>
 </head>
 <body>
     <h2>Pneumonia Detection from Chest X-ray</h2>
+
     <form action="/predict" method="post" enctype="multipart/form-data">
+        <label for="file">Upload Chest X-ray Image:</label><br>
         <input type="file" name="file" required><br><br>
         <input type="submit" value="Upload and Predict">
     </form>
 
     {% if result %}
-        <h3>Prediction: {{ result }}</h3>
-        <img src="{{ img_path }}" width="300">
+        <div class="result">
+            <h3>Prediction Result: <span style="color: green;">{{ result }}</span></h3>
+            <img src="{{ img_path }}" alt="Uploaded X-ray">
+        </div>
     {% endif %}
 </body>
 </html>
