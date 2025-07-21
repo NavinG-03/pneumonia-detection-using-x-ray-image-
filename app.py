@@ -33,5 +33,5 @@ def predict():
     return render_template('index.html', result=result, img_path=filepath)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port=5001)
 
