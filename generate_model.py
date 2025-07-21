@@ -20,6 +20,17 @@ model = Sequential([
 model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# Save it to the correct path
+train_dir = 'dataset/train'
+val_dir = 'dataset/val'
+
+train_datagen = ImageDataGenerator(rescale=1./255)
+val_datagen = ImageDataGenerator(rescale=1./255)
+
+train_gen = train_datagen.flow_from_directory(train_dir, target_size=(150,150), batch_size=16, class_mode='categorical')
+val_gen = val_datagen.flow_from_directory(val_dir, target_size=(150,150), batch_size=16, class_mode='categorical')
+
+# Train model
+model.fit(train_gen, validation_data=val_gen, epochs=5)
+
+# Save model
 model.save('model/pneumonia_cnn_model.h5')
-print("✅ Model saved at model/pneumonia_cnn_model.h5")
