@@ -1,63 +1,38 @@
-# model.py
-import os
+from flask import Flask, render_template, request
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from sklearn.utils.class_weight import compute_class_weight
+import os
 
-# Dataset path
-dataset_dir = 'dataset'
+app = Flask(__name__)
+model = load_model('model/pneumonia_cnn_model.h5')
 
-# ImageDataGenerator for training and validation
-datagen = ImageDataGenerator(
-    rescale=1./255,
-    validation_split=0.2
-)
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-train_data = datagen.flow_from_directory(
-    dataset_dir,
-    target_size=(150, 150),
-    batch_size=32,
-    class_mode='categorical',
-    subset='training'
-)
+classes = ['Normal', 'Bacterial Pneumonia', 'Viral Pneumonia']
 
-val_data = datagen.flow_from_directory(
-    dataset_dir,
-    target_size=(150, 150),
-    batch_size=32,
-    class_mode='categorical',
-    subset='validation'
-)
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Handle class imbalance
-class_weights = compute_class_weight(
-    class_weight='balanced',
-    classes=np.unique(train_data.classes),
-    y=train_data.classes
-)
-class_weights = dict(enumerate(class_weights))
+@app.route('/predict', methods=['POST'])
+def predict():
+    if 'file' not in request.files:
+        return "No file uploaded"
+    
+    file = request.files['file']
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
 
-# Model definition
-model = Sequential([
-    Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
-    MaxPooling2D(2,2),
-    Conv2D(64, (3,3), activation='relu'),
-    MaxPooling2D(2,2),
-    Conv2D(128, (3,3), activation='relu'),
-    MaxPooling2D(2,2),
-    Flatten(),
-    Dense(256, activation='relu'),
-    Dropout(0.5),
-    Dense(3, activation='softmax')
-])
+    img = image.load_img(filepath, target_size=(150, 150))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    prediction = model.predict(img_array)[0]
+    predicted_class = classes[np.argmax(prediction)]
 
-model.fit(train_data, validation_data=val_data, epochs=15, class_weight=class_weights)
+    return render_template('index.html', result=predicted_class, img_path=filepath)
 
-# Save model
-os.makedirs('model', exist_ok=True)
-model.save('model/pneumonia_cnn_model.h5')
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
