@@ -1,9 +1,11 @@
+# model.py
 import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from sklearn.utils.class_weight import compute_class_weight
 
 # Dataset path
 dataset_dir = 'dataset'
@@ -30,21 +32,32 @@ val_data = datagen.flow_from_directory(
     subset='validation'
 )
 
+# Handle class imbalance
+class_weights = compute_class_weight(
+    class_weight='balanced',
+    classes=np.unique(train_data.classes),
+    y=train_data.classes
+)
+class_weights = dict(enumerate(class_weights))
+
 # Model definition
 model = Sequential([
     Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
     MaxPooling2D(2,2),
     Conv2D(64, (3,3), activation='relu'),
     MaxPooling2D(2,2),
+    Conv2D(128, (3,3), activation='relu'),
+    MaxPooling2D(2,2),
     Flatten(),
-    Dense(128, activation='relu'),
+    Dense(256, activation='relu'),
     Dropout(0.5),
     Dense(3, activation='softmax')
 ])
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-model.fit(train_data, validation_data=val_data, epochs=5)
+model.fit(train_data, validation_data=val_data, epochs=15, class_weight=class_weights)
 
 # Save model
+os.makedirs('model', exist_ok=True)
 model.save('model/pneumonia_cnn_model.h5')
