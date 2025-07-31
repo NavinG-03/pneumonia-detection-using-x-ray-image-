@@ -61,4 +61,3 @@ model.fit(train_data, validation_data=val_data, epochs=15, class_weight=class_we
 # Save model
 os.makedirs('model', exist_ok=True)
 model.save('model/pneumonia_cnn_model.h5')
-
