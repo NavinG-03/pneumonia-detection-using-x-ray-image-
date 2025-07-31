@@ -56,29 +56,9 @@ model = Sequential([
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-history=model.fit(train_data, validation_data=val_data, epochs=15, class_weight=class_weights)
+model.fit(train_data, validation_data=val_data, epochs=15, class_weight=class_weights)
 
 # Save model
 os.makedirs('model', exist_ok=True)
 model.save('model/pneumonia_cnn_model.h5')
-import matplotlib.pyplot as plt
 
-# Plot Accuracy
-plt.plot(history.history['accuracy'], label='Train Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Training vs Validation Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# Plot Loss
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.title('Training vs Validation Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.grid(True)
-plt.show()
